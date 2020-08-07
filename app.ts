@@ -35,8 +35,23 @@ class ProjectInputForm {
     @Autobind
     private submitHandler(e: Event) {
         e.preventDefault();
-        console.log('submit');
-        console.log(this.titleInputElement.value);
+        const userInput = this.collectUserInput();
+        this.clearInput();
+        console.log(userInput);
+    }
+
+    private collectUserInput(): [string, string, number] {
+        const title = this.titleInputElement.value;
+        const description = this.descriptionInputElement.value;
+        const people = this.peopleInputElement.value;
+
+        return [title, description, +people];
+    }
+
+    private clearInput() {
+        this.titleInputElement.value = '';
+        this.descriptionInputElement.value = '';
+        this.peopleInputElement.value = '';
     }
 
     private getFormFromTemplate() {

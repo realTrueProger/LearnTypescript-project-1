@@ -28,8 +28,20 @@ class ProjectInputForm {
     }
     submitHandler(e) {
         e.preventDefault();
-        console.log('submit');
-        console.log(this.titleInputElement.value);
+        const userInput = this.collectUserInput();
+        this.clearInput();
+        console.log(userInput);
+    }
+    collectUserInput() {
+        const title = this.titleInputElement.value;
+        const description = this.descriptionInputElement.value;
+        const people = this.peopleInputElement.value;
+        return [title, description, +people];
+    }
+    clearInput() {
+        this.titleInputElement.value = '';
+        this.descriptionInputElement.value = '';
+        this.peopleInputElement.value = '';
     }
     getFormFromTemplate() {
         const templateContent = document.importNode(this.templateElement.content, true);
