@@ -11,21 +11,36 @@ function Autobind(target: any, methodName: string, descriptor: PropertyDescripto
     return adjustedDescriptor;
 }
 
-interface Project {
-    title: string;
-    description: string;
-    people: number;
-    id?: string;
+enum ProjectStatus { ACTIVE, FINISHED}
+
+class Project {
+    constructor(
+        public id: string,
+        public title: string,
+        public description: string,
+        public people: number,
+        public status: ProjectStatus) {
+    }
 }
 
+interface UserInput  {
+    title: string,
+    description: string,
+    people: number,
+}
+
+type Listener = (items: Project[]) => void;
+
+// Application state singleton class
 class AppState {
-    private listeners: Function[] = [];
+    private listeners: Listener[] = [];
     private projects: Project[] = [];
     private static instance: AppState;
 
-    private constructor() {}
+    private constructor() {
+    }
 
-    public addListener(listenerFn: Function) {
+    public addListener(listenerFn: Listener) {
         this.listeners.push(listenerFn);
     }
 
@@ -38,14 +53,17 @@ class AppState {
         }
     }
 
-    public addProject(project: Project) {
-        const projectToAdd = {
-            ...project,
-            id: Math.random().toString(),
-        };
+    public addProject({title, description, people}: UserInput ) {
+        const projectToAdd = new Project(
+            Math.random().toString(),
+            title,
+            description,
+            people,
+            ProjectStatus.ACTIVE);
+
         this.projects.push(projectToAdd);
 
-        for(const listener of this.listeners) {
+        for (const listener of this.listeners) {
             listener([...this.projectList]);
         }
     }
@@ -62,15 +80,15 @@ class ProjectList {
     templateElement: HTMLTemplateElement;
     appRootElement: HTMLDivElement;
     sectionElement: HTMLElement;
-    listType: 'active' | 'finished';
+    listType: ProjectStatus;
     projectList: Project[] = [];
 
-    constructor(listType: 'active' | 'finished') {
+    constructor(listType: ProjectStatus) {
         this.listType = listType;
         this.templateElement = document.getElementById('project-list')! as HTMLTemplateElement;
         this.appRootElement = document.getElementById('app')! as HTMLDivElement;
         this.sectionElement = this.getSectionFromTemplate();
-        this.sectionElement.id = `${this.listType}-projects`;
+        this.setSectionId();
 
         state.addListener((projectList: Project[]) => {
             this.projectList = projectList;
@@ -81,9 +99,13 @@ class ProjectList {
         this.fillHeader();
     }
 
+    private setSectionId() {
+        this.sectionElement.id = this.listType === ProjectStatus.ACTIVE ? 'active-projects' : 'finished-projects';
+    }
+
     private fillProjectList() {
         const ul = this.sectionElement.querySelector('ul')! as HTMLUListElement;
-        for(const project of this.projectList) {
+        for (const project of this.projectList) {
             const listItem = document.createElement('li');
             listItem.textContent = project.title;
             ul.appendChild(listItem);
@@ -92,7 +114,8 @@ class ProjectList {
 
     private fillHeader() {
         const header = this.sectionElement.querySelector('h2')!;
-        header.textContent = `${this.listType} projects`.toUpperCase();
+        const headerText = this.listType === ProjectStatus.ACTIVE ? 'active projects' : 'finished projects';
+        header.textContent = headerText.toUpperCase();
     }
 
     private getSectionFromTemplate() {
@@ -130,14 +153,14 @@ class ProjectInputForm {
     @Autobind
     private submitHandler(e: Event) {
         e.preventDefault();
-        const userInput: Project = this.collectUserInput();
+        const userInput = this.collectUserInput();
         this.clearInput();
 
         state.addProject(userInput);
         console.log(state.projectList);
     }
 
-    private collectUserInput(): Project {
+    private collectUserInput(): UserInput {
         const title = this.titleInputElement.value;
         const description = this.descriptionInputElement.value;
         const people = +this.peopleInputElement.value;
@@ -162,5 +185,5 @@ class ProjectInputForm {
 }
 
 const projectInput = new ProjectInputForm();
-const activeProjectList = new ProjectList('active');
-const finishedProjectList = new ProjectList('finished');
+const activeProjectList = new ProjectList(ProjectStatus.ACTIVE);
+const finishedProjectList = new ProjectList(ProjectStatus.FINISHED);

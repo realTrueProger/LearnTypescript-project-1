@@ -16,6 +16,21 @@ function Autobind(target, methodName, descriptor) {
     };
     return adjustedDescriptor;
 }
+var ProjectStatus;
+(function (ProjectStatus) {
+    ProjectStatus[ProjectStatus["ACTIVE"] = 0] = "ACTIVE";
+    ProjectStatus[ProjectStatus["FINISHED"] = 1] = "FINISHED";
+})(ProjectStatus || (ProjectStatus = {}));
+class Project {
+    constructor(id, title, description, people, status) {
+        this.id = id;
+        this.title = title;
+        this.description = description;
+        this.people = people;
+        this.status = status;
+    }
+}
+// Application state singleton class
 class AppState {
     constructor() {
         this.listeners = [];
@@ -33,8 +48,8 @@ class AppState {
             return this.instance;
         }
     }
-    addProject(project) {
-        const projectToAdd = Object.assign(Object.assign({}, project), { id: Math.random().toString() });
+    addProject({ title, description, people }) {
+        const projectToAdd = new Project(Math.random().toString(), title, description, people, ProjectStatus.ACTIVE);
         this.projects.push(projectToAdd);
         for (const listener of this.listeners) {
             listener([...this.projectList]);
@@ -52,13 +67,16 @@ class ProjectList {
         this.templateElement = document.getElementById('project-list');
         this.appRootElement = document.getElementById('app');
         this.sectionElement = this.getSectionFromTemplate();
-        this.sectionElement.id = `${this.listType}-projects`;
+        this.setSectionId();
         state.addListener((projectList) => {
             this.projectList = projectList;
             this.fillProjectList();
         });
         this.renderHtml();
         this.fillHeader();
+    }
+    setSectionId() {
+        this.sectionElement.id = this.listType === ProjectStatus.ACTIVE ? 'active-projects' : 'finished-projects';
     }
     fillProjectList() {
         const ul = this.sectionElement.querySelector('ul');
@@ -70,7 +88,8 @@ class ProjectList {
     }
     fillHeader() {
         const header = this.sectionElement.querySelector('h2');
-        header.textContent = `${this.listType} projects`.toUpperCase();
+        const headerText = this.listType === ProjectStatus.ACTIVE ? 'active projects' : 'finished projects';
+        header.textContent = headerText.toUpperCase();
     }
     getSectionFromTemplate() {
         const templateContent = document.importNode(this.templateElement.content, true);
@@ -121,6 +140,6 @@ __decorate([
     Autobind
 ], ProjectInputForm.prototype, "submitHandler", null);
 const projectInput = new ProjectInputForm();
-const activeProjectList = new ProjectList('active');
-const finishedProjectList = new ProjectList('finished');
+const activeProjectList = new ProjectList(ProjectStatus.ACTIVE);
+const finishedProjectList = new ProjectList(ProjectStatus.FINISHED);
 //# sourceMappingURL=app.js.map
