@@ -1,4 +1,4 @@
-// autobind Decorator
+// Autobind Decorator
 function Autobind(target: any, methodName: string, descriptor: PropertyDescriptor) {
     const originalMethod = descriptor.value;
     const adjustedDescriptor: PropertyDescriptor = {
@@ -11,11 +11,59 @@ function Autobind(target: any, methodName: string, descriptor: PropertyDescripto
     return adjustedDescriptor;
 }
 
+interface Project {
+    title: string;
+    description: string;
+    people: number;
+    id?: string;
+}
+
+class AppState {
+    private listeners: Function[] = [];
+    private projects: Project[] = [];
+    private static instance: AppState;
+
+    private constructor() {}
+
+    public addListener(listenerFn: Function) {
+        this.listeners.push(listenerFn);
+    }
+
+    static getInstance() {
+        if (this.instance) {
+            return this.instance;
+        } else {
+            this.instance = new AppState();
+            return this.instance;
+        }
+    }
+
+    public addProject(project: Project) {
+        const projectToAdd = {
+            ...project,
+            id: Math.random().toString(),
+        };
+        this.projects.push(projectToAdd);
+
+        for(const listener of this.listeners) {
+            listener([...this.projectList]);
+        }
+    }
+
+    get projectList() {
+        return [...this.projects];
+    }
+}
+
+const state = AppState.getInstance();
+
+
 class ProjectList {
     templateElement: HTMLTemplateElement;
     appRootElement: HTMLDivElement;
     sectionElement: HTMLElement;
     listType: 'active' | 'finished';
+    projectList: Project[] = [];
 
     constructor(listType: 'active' | 'finished') {
         this.listType = listType;
@@ -24,11 +72,25 @@ class ProjectList {
         this.sectionElement = this.getSectionFromTemplate();
         this.sectionElement.id = `${this.listType}-projects`;
 
+        state.addListener((projectList: Project[]) => {
+            this.projectList = projectList;
+            this.fillProjectList();
+        });
+
         this.renderHtml();
-        this.fillWithContent();
+        this.fillHeader();
     }
 
-    private fillWithContent() {
+    private fillProjectList() {
+        const ul = this.sectionElement.querySelector('ul')! as HTMLUListElement;
+        for(const project of this.projectList) {
+            const listItem = document.createElement('li');
+            listItem.textContent = project.title;
+            ul.appendChild(listItem);
+        }
+    }
+
+    private fillHeader() {
         const header = this.sectionElement.querySelector('h2')!;
         header.textContent = `${this.listType} projects`.toUpperCase();
     }
@@ -68,17 +130,19 @@ class ProjectInputForm {
     @Autobind
     private submitHandler(e: Event) {
         e.preventDefault();
-        const userInput = this.collectUserInput();
+        const userInput: Project = this.collectUserInput();
         this.clearInput();
-        console.log(userInput);
+
+        state.addProject(userInput);
+        console.log(state.projectList);
     }
 
-    private collectUserInput(): [string, string, number] {
+    private collectUserInput(): Project {
         const title = this.titleInputElement.value;
         const description = this.descriptionInputElement.value;
-        const people = this.peopleInputElement.value;
+        const people = +this.peopleInputElement.value;
 
-        return [title, description, +people];
+        return {title, description, people};
     }
 
     private clearInput() {
@@ -96,7 +160,6 @@ class ProjectInputForm {
         this.appRootElement.insertAdjacentElement('afterbegin', this.formElement);
     }
 }
-
 
 const projectInput = new ProjectInputForm();
 const activeProjectList = new ProjectList('active');
