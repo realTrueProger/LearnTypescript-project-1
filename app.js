@@ -5,6 +5,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
+// autobind Decorator
 function Autobind(target, methodName, descriptor) {
     const originalMethod = descriptor.value;
     const adjustedDescriptor = {
@@ -14,6 +15,28 @@ function Autobind(target, methodName, descriptor) {
         }
     };
     return adjustedDescriptor;
+}
+class ProjectList {
+    constructor(listType) {
+        this.listType = listType;
+        this.templateElement = document.getElementById('project-list');
+        this.appRootElement = document.getElementById('app');
+        this.sectionElement = this.getSectionFromTemplate();
+        this.sectionElement.id = `${this.listType}-projects`;
+        this.renderHtml();
+        this.fillWithContent();
+    }
+    fillWithContent() {
+        const header = this.sectionElement.querySelector('h2');
+        header.textContent = `${this.listType} projects`.toUpperCase();
+    }
+    getSectionFromTemplate() {
+        const templateContent = document.importNode(this.templateElement.content, true);
+        return templateContent.firstElementChild;
+    }
+    renderHtml() {
+        this.appRootElement.insertAdjacentElement('beforeend', this.sectionElement);
+    }
 }
 class ProjectInputForm {
     constructor() {
@@ -55,4 +78,6 @@ __decorate([
     Autobind
 ], ProjectInputForm.prototype, "submitHandler", null);
 const projectInput = new ProjectInputForm();
+const activeProjectList = new ProjectList('active');
+const finishedProjectList = new ProjectList('finished');
 //# sourceMappingURL=app.js.map

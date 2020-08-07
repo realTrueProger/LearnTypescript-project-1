@@ -1,3 +1,4 @@
+// autobind Decorator
 function Autobind(target: any, methodName: string, descriptor: PropertyDescriptor) {
     const originalMethod = descriptor.value;
     const adjustedDescriptor: PropertyDescriptor = {
@@ -8,6 +9,38 @@ function Autobind(target: any, methodName: string, descriptor: PropertyDescripto
     };
 
     return adjustedDescriptor;
+}
+
+class ProjectList {
+    templateElement: HTMLTemplateElement;
+    appRootElement: HTMLDivElement;
+    sectionElement: HTMLElement;
+    listType: 'active' | 'finished';
+
+    constructor(listType: 'active' | 'finished') {
+        this.listType = listType;
+        this.templateElement = document.getElementById('project-list')! as HTMLTemplateElement;
+        this.appRootElement = document.getElementById('app')! as HTMLDivElement;
+        this.sectionElement = this.getSectionFromTemplate();
+        this.sectionElement.id = `${this.listType}-projects`;
+
+        this.renderHtml();
+        this.fillWithContent();
+    }
+
+    private fillWithContent() {
+        const header = this.sectionElement.querySelector('h2')!;
+        header.textContent = `${this.listType} projects`.toUpperCase();
+    }
+
+    private getSectionFromTemplate() {
+        const templateContent = document.importNode(this.templateElement.content, true);
+        return templateContent.firstElementChild as HTMLElement;
+    }
+
+    private renderHtml() {
+        this.appRootElement.insertAdjacentElement('beforeend', this.sectionElement);
+    }
 }
 
 class ProjectInputForm {
@@ -66,3 +99,5 @@ class ProjectInputForm {
 
 
 const projectInput = new ProjectInputForm();
+const activeProjectList = new ProjectList('active');
+const finishedProjectList = new ProjectList('finished');
