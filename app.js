@@ -69,7 +69,7 @@ class ProjectList {
         this.sectionElement = this.getSectionFromTemplate();
         this.setSectionId();
         state.addListener((projectList) => {
-            this.projectList = projectList;
+            this.projectList = projectList.filter(project => project.status === this.listType);
             this.fillProjectList();
         });
         this.renderHtml();
@@ -80,6 +80,7 @@ class ProjectList {
     }
     fillProjectList() {
         const ul = this.sectionElement.querySelector('ul');
+        ul.innerHTML = '';
         for (const project of this.projectList) {
             const listItem = document.createElement('li');
             listItem.textContent = project.title;
