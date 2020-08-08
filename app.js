@@ -60,26 +60,40 @@ class AppState {
     }
 }
 const state = AppState.getInstance();
-class ProjectList {
+// Component base class
+class Component {
+    constructor(templateId, rootId, renderPosition) {
+        this.templateElement = document.getElementById(templateId);
+        this.appRootElement = document.getElementById(rootId);
+        this.templateRoot = this.getTemplateRoot();
+        this.renderPosition = renderPosition;
+        this.renderHtml();
+    }
+    getTemplateRoot() {
+        const templateContent = document.importNode(this.templateElement.content, true);
+        return templateContent.firstElementChild;
+    }
+    renderHtml() {
+        this.appRootElement.insertAdjacentElement(this.renderPosition, this.templateRoot);
+    }
+}
+class ProjectList extends Component {
     constructor(listType) {
+        super('project-list', 'app', 'beforeend');
         this.projectList = [];
         this.listType = listType;
-        this.templateElement = document.getElementById('project-list');
-        this.appRootElement = document.getElementById('app');
-        this.sectionElement = this.getSectionFromTemplate();
         this.setSectionId();
         state.addListener((projectList) => {
             this.projectList = projectList.filter(project => project.status === this.listType);
             this.fillProjectList();
         });
-        this.renderHtml();
         this.fillHeader();
     }
     setSectionId() {
-        this.sectionElement.id = this.listType === ProjectStatus.ACTIVE ? 'active-projects' : 'finished-projects';
+        this.templateRoot.id = this.listType === ProjectStatus.ACTIVE ? 'active-projects' : 'finished-projects';
     }
     fillProjectList() {
-        const ul = this.sectionElement.querySelector('ul');
+        const ul = this.templateRoot.querySelector('ul');
         ul.innerHTML = '';
         for (const project of this.projectList) {
             const listItem = document.createElement('li');
@@ -88,28 +102,18 @@ class ProjectList {
         }
     }
     fillHeader() {
-        const header = this.sectionElement.querySelector('h2');
+        const header = this.templateRoot.querySelector('h2');
         const headerText = this.listType === ProjectStatus.ACTIVE ? 'active projects' : 'finished projects';
         header.textContent = headerText.toUpperCase();
     }
-    getSectionFromTemplate() {
-        const templateContent = document.importNode(this.templateElement.content, true);
-        return templateContent.firstElementChild;
-    }
-    renderHtml() {
-        this.appRootElement.insertAdjacentElement('beforeend', this.sectionElement);
-    }
 }
-class ProjectInputForm {
+class ProjectInputForm extends Component {
     constructor() {
-        this.templateElement = document.getElementById('project-input');
-        this.appRootElement = document.getElementById('app');
-        this.formElement = this.getFormFromTemplate();
-        this.titleInputElement = this.formElement.querySelector('#title');
-        this.descriptionInputElement = this.formElement.querySelector('#description');
-        this.peopleInputElement = this.formElement.querySelector('#people');
-        this.formElement.addEventListener('submit', this.submitHandler);
-        this.renderHtml();
+        super('project-input', 'app', 'afterbegin');
+        this.titleInputElement = this.templateRoot.querySelector('#title');
+        this.descriptionInputElement = this.templateRoot.querySelector('#description');
+        this.peopleInputElement = this.templateRoot.querySelector('#people');
+        this.templateRoot.addEventListener('submit', this.submitHandler);
     }
     submitHandler(e) {
         e.preventDefault();
@@ -128,13 +132,6 @@ class ProjectInputForm {
         this.titleInputElement.value = '';
         this.descriptionInputElement.value = '';
         this.peopleInputElement.value = '';
-    }
-    getFormFromTemplate() {
-        const templateContent = document.importNode(this.templateElement.content, true);
-        return templateContent.firstElementChild;
-    }
-    renderHtml() {
-        this.appRootElement.insertAdjacentElement('afterbegin', this.formElement);
     }
 }
 __decorate([

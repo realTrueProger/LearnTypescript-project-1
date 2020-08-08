@@ -75,19 +75,38 @@ class AppState {
 
 const state = AppState.getInstance();
 
+// Component base class
+abstract class Component<T extends HTMLElement, U extends HTMLElement> {
+    protected templateElement: HTMLTemplateElement;
+    protected appRootElement: T;
+    protected templateRoot: U;
+    protected renderPosition: InsertPosition;
 
-class ProjectList {
-    templateElement: HTMLTemplateElement;
-    appRootElement: HTMLDivElement;
-    sectionElement: HTMLElement;
+    protected constructor(templateId: string, rootId: string, renderPosition: InsertPosition) {
+        this.templateElement = document.getElementById(templateId)! as HTMLTemplateElement;
+        this.appRootElement = document.getElementById(rootId)! as T;
+        this.templateRoot = this.getTemplateRoot()! as U;
+        this.renderPosition = renderPosition;
+        this.renderHtml();
+    }
+
+    private getTemplateRoot() {
+        const templateContent = document.importNode(this.templateElement.content, true);
+        return templateContent.firstElementChild;
+    }
+
+    protected renderHtml() {
+        this.appRootElement.insertAdjacentElement(this.renderPosition, this.templateRoot);
+    }
+}
+
+class ProjectList extends Component<HTMLDivElement, HTMLElement>{
     listType: ProjectStatus;
     projectList: Project[] = [];
 
     constructor(listType: ProjectStatus) {
+        super('project-list', 'app', 'beforeend');
         this.listType = listType;
-        this.templateElement = document.getElementById('project-list')! as HTMLTemplateElement;
-        this.appRootElement = document.getElementById('app')! as HTMLDivElement;
-        this.sectionElement = this.getSectionFromTemplate();
         this.setSectionId();
 
         state.addListener((projectList: Project[]) => {
@@ -95,16 +114,15 @@ class ProjectList {
             this.fillProjectList();
         });
 
-        this.renderHtml();
         this.fillHeader();
     }
 
     private setSectionId() {
-        this.sectionElement.id = this.listType === ProjectStatus.ACTIVE ? 'active-projects' : 'finished-projects';
+        this.templateRoot.id = this.listType === ProjectStatus.ACTIVE ? 'active-projects' : 'finished-projects';
     }
 
     private fillProjectList() {
-        const ul = this.sectionElement.querySelector('ul')! as HTMLUListElement;
+        const ul = this.templateRoot.querySelector('ul')! as HTMLUListElement;
         ul.innerHTML = '';
         for (const project of this.projectList) {
             const listItem = document.createElement('li');
@@ -114,41 +132,25 @@ class ProjectList {
     }
 
     private fillHeader() {
-        const header = this.sectionElement.querySelector('h2')!;
+        const header = this.templateRoot.querySelector('h2')!;
         const headerText = this.listType === ProjectStatus.ACTIVE ? 'active projects' : 'finished projects';
         header.textContent = headerText.toUpperCase();
     }
-
-    private getSectionFromTemplate() {
-        const templateContent = document.importNode(this.templateElement.content, true);
-        return templateContent.firstElementChild as HTMLElement;
-    }
-
-    private renderHtml() {
-        this.appRootElement.insertAdjacentElement('beforeend', this.sectionElement);
-    }
 }
 
-class ProjectInputForm {
-    templateElement: HTMLTemplateElement;
-    appRootElement: HTMLDivElement;
-    formElement: HTMLFormElement;
+class ProjectInputForm extends Component<HTMLDivElement, HTMLFormElement>{
     titleInputElement: HTMLInputElement;
     descriptionInputElement: HTMLInputElement;
     peopleInputElement: HTMLInputElement;
 
     constructor() {
-        this.templateElement = document.getElementById('project-input')! as HTMLTemplateElement;
-        this.appRootElement = document.getElementById('app')! as HTMLDivElement;
-        this.formElement = this.getFormFromTemplate();
+        super('project-input', 'app', 'afterbegin');
 
-        this.titleInputElement = this.formElement.querySelector('#title')! as HTMLInputElement;
-        this.descriptionInputElement = this.formElement.querySelector('#description')! as HTMLInputElement;
-        this.peopleInputElement = this.formElement.querySelector('#people')! as HTMLInputElement;
+        this.titleInputElement = this.templateRoot.querySelector('#title')! as HTMLInputElement;
+        this.descriptionInputElement = this.templateRoot.querySelector('#description')! as HTMLInputElement;
+        this.peopleInputElement = this.templateRoot.querySelector('#people')! as HTMLInputElement;
 
-        this.formElement.addEventListener('submit', this.submitHandler);
-
-        this.renderHtml();
+        this.templateRoot.addEventListener('submit', this.submitHandler);
     }
 
     @Autobind
@@ -173,15 +175,6 @@ class ProjectInputForm {
         this.titleInputElement.value = '';
         this.descriptionInputElement.value = '';
         this.peopleInputElement.value = '';
-    }
-
-    private getFormFromTemplate() {
-        const templateContent = document.importNode(this.templateElement.content, true);
-        return templateContent.firstElementChild as HTMLFormElement;
-    }
-
-    private renderHtml() {
-        this.appRootElement.insertAdjacentElement('afterbegin', this.formElement);
     }
 }
 
