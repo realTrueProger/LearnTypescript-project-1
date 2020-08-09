@@ -1,12 +1,9 @@
-/// <reference path="dragAndDropInterfaces.ts"/>
-/// <reference path="state.ts"/>
-/// <reference path="autoBindDecorator.ts"/>
-/// <reference path="components.ts"/>
+import {ProjectInputForm, ProjectList} from './components.js'
+import {ProjectStatus} from "./types.js";
 
-namespace App {
-    new ProjectInputForm();
-    new ProjectList(ProjectStatus.ACTIVE);
-    new ProjectList(ProjectStatus.FINISHED);
-}
+new ProjectInputForm();
+new ProjectList(ProjectStatus.ACTIVE);
+new ProjectList(ProjectStatus.FINISHED);
+
 
 
