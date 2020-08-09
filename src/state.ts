@@ -1,7 +1,7 @@
-import {Listener} from "./types.js";
-import {Project} from "./project.js";
-import {ProjectStatus} from "./types.js";
-import {UserInput} from "./Interfaces.js";
+import {Listener} from "./types";
+import {Project} from "./project";
+import {ProjectStatus} from "./types";
+import {UserInput} from "./Interfaces";
 
 // Application state singleton class
 export class AppState {

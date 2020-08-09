@@ -1,9 +1,8 @@
-import {ProjectInputForm, ProjectList} from './components.js'
-import {ProjectStatus} from "./types.js";
+import {ProjectInputForm, ProjectList} from './components'
+import {ProjectStatus} from "./types";
 
 new ProjectInputForm();
 new ProjectList(ProjectStatus.ACTIVE);
 new ProjectList(ProjectStatus.FINISHED);
-
 
 

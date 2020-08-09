@@ -1,4 +1,4 @@
-import {Project} from "./project.js";
+import {Project} from "./project";
 
 export enum ProjectStatus { ACTIVE, FINISHED}
 

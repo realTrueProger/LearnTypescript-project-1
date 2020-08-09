@@ -1,8 +1,8 @@
-import {Draggable, DragTarget, UserInput} from './Interfaces.js'
-import {Autobind} from './autoBindDecorator.js'
-import {state} from "./state.js";
-import {Project} from "./project.js";
-import {ProjectStatus} from "./types.js";
+import {Draggable, DragTarget, UserInput} from './Interfaces'
+import {Autobind} from './autoBindDecorator'
+import {state} from "./state";
+import {Project} from "./project";
+import {ProjectStatus} from "./types";
 
 // Component base class
 export abstract class Component<T extends HTMLElement, U extends HTMLElement> {
