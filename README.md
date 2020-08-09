@@ -1,1 +1,1 @@
-# LearnTypescript-project-1
+# LearnTypescript-project.ts-1
